@@ -1,0 +1,7 @@
+---
+- name: Create Minecraft Server
+  hosts: localhost
+  become: true
+
+  roles:
+    - create_minecraft_server

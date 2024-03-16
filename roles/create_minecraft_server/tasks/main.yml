@@ -1,0 +1,79 @@
+# ---
+# # tasks file for create_minecraft_server
+# # check if minecraft_servers_location exists, register as fact
+# - name: Check if minecraft_servers_location exists
+#   ansible.builtin.stat:
+#     path: "{{ minecraft_servers_location }}"
+#   register: minecraft_servers_location
+
+# # tell user if it exists, prompt to overwrite
+# - name: Prompt to overwrite minecraft_servers_location
+#   ansible.builtin.debug:
+#     msg: "The directory {{ minecraft_servers_location }} already exists. Do you want to overwrite it?"
+#   when: minecraft_servers_location.stat.exists
+
+# # if user wants to overwrite, remove directory
+# - name: Remove minecraft_servers_location
+#   ansible.builtin.file:
+#     path: "{{ minecraft_servers_location }}"
+#     state: absent
+#   when: minecraft_servers_location.stat.exists
+
+# ensure minecraft_servers_location exists
+- name: Ensure minecraft_servers_location exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  with_items: 
+    - "{{ minecraft_servers_location }}"
+    - "{{ minecraft_server_location }}"
+
+
+# for all in minecraft_server_downloads, download as loop
+- name: Download Minecraft Server files
+  ansible.builtin.get_url:
+    url: "{{ item.value.url }}"
+    dest: "{{ minecraft_server_location }}/{{ item.value.filename }}"
+  loop: "{{ minecraft_server_downloads | dict2items }}" 
+
+# accept uela
+- name: Accept EULA
+  ansible.builtin.copy:
+    content: "eula=true"
+    dest: "{{ minecraft_server_location }}/eula.txt"
+
+# create docker-compose file
+- name: Generate docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ minecraft_server_location }}/docker-compose.yaml"
+
+# build spigot # tail BuildTools.log.txt
+- name: Build spigot
+  ansible.builtin.shell: "java -jar BuildTools.jar --rev {{ minecraft_version }}"
+  args:
+    chdir: "{{ minecraft_server_location }}"
+  when: minecraft_type == "SPIGOT"
+
+
+
+# copy server.properties
+- name: Copy server.properties
+  ansible.builtin.copy:
+    src: "{{ minecraft_server_downloads.properties.filename }}"
+    dest: "{{ minecraft_server_location }}/server.properties"
+
+# run docker-compose up
+- name: Run docker-compose up
+  ansible.builtin.shell: "docker-compose up -d"
+  args:
+    chdir: "{{ minecraft_server_location }}"
+    become: true
+
+
+# # run start.sh
+# - name: Run start.sh
+#   ansible.builtin.shell: "{{ minecraft_server_location }}/{{ minecraft_server_downloads.start_script.filename }}"
+#   args:
+#     chdir: "{{ minecraft_server_location }}"
+#   become: true

@@ -1,0 +1,25 @@
+---
+# defaults file for create_minecraft_server
+
+minecraft_servers_location: "/opt/minecraft_servers"
+
+minecraft_server_name: "second_server"
+minecraft_server_location: "{{minecraft_servers_location}}/{{minecraft_server_name}}"
+minecraft_server_image: "itzg/minecraft-server"
+minecraft_version: "latest"
+minecraft_type: "SPIGOT" # or "VANILLA"
+minecraft_server_port: 25565
+minecraft_server_ram: 1024
+minecraft_server_max_ram: 2048
+
+
+minecraft_server_downloads:
+  jar: 
+    filename: "spigot-1.16.5.jar"
+    url: "https://cdn.getbukkit.org/spigot/spigot-1.16.5.jar"
+  build_tools: 
+    filename: "BuildTools.jar"
+    url: "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
+  properties: 
+    url: "https://raw.githubusercontent.com/eternnoir/docker-spigot/master/server.properties"
+    filename: "server.properties"
